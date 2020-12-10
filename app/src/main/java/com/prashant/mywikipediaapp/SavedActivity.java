@@ -8,8 +8,11 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.prashant.mywikipediaapp.Adapter.FeaturedImagesAdapter;
 import com.prashant.mywikipediaapp.Adapter.RandomArticlesAdapter;
@@ -24,6 +27,7 @@ public class SavedActivity extends AppCompatActivity {
 
     private SQLiteDatabaseHandler db;
     private RecyclerView savedRecycler;
+    private TextView noDataFound;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -38,19 +42,25 @@ public class SavedActivity extends AppCompatActivity {
             getSupportActionBar().setTitle("Saved Articles");
         }
 
+        noDataFound = findViewById(R.id.noDataFound);
         savedRecycler = findViewById(R.id.savedRecycler);
         db = new SQLiteDatabaseHandler(this);
 
-//        db.deleteAll();
 
+        //Get Data From SQLite Database
         List<RandomArticles> articles = db.allArticles();
 
-        if (articles != null) {
+        if (articles != null && articles.size()>0) {
 
+            //set data to recyclerview
+            noDataFound.setVisibility(View.GONE);
             savedRecycler.setLayoutManager(new LinearLayoutManager(SavedActivity.this, LinearLayoutManager.VERTICAL, true));
             FeaturedImagesAdapter professionalServicesAdapter = new FeaturedImagesAdapter(SavedActivity.this, articles);
             savedRecycler.setAdapter(professionalServicesAdapter);
 
+        }else {
+            //Show no data found
+            noDataFound.setVisibility(View.VISIBLE);
         }
 
     }

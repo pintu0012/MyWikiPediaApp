@@ -13,17 +13,13 @@ import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
-import android.text.Html;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.android.volley.DefaultRetryPolicy;
@@ -37,39 +33,25 @@ import com.google.android.material.navigation.NavigationView;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.prashant.mywikipediaapp.Adapter.FeaturedImagesAdapter;
 import com.prashant.mywikipediaapp.Adapter.RandomArticlesAdapter;
 import com.prashant.mywikipediaapp.Common.ApiInterface;
 import com.prashant.mywikipediaapp.Model.AllCategories;
-import com.prashant.mywikipediaapp.Model.CategoryModel;
 import com.prashant.mywikipediaapp.Model.ContinueModel;
-import com.prashant.mywikipediaapp.Model.FeaturedImagesModel;
 import com.prashant.mywikipediaapp.Model.ImageInfo;
 import com.prashant.mywikipediaapp.Model.RandomArticles;
-import com.prashant.mywikipediaapp.Model.Revisions;
-import com.prashant.mywikipediaapp.Model.SearchModel;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Random;
-import java.util.regex.Pattern;
 
-public class HomePageActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener{
+public class HomePageActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
     private RecyclerView recyclerView;
     private ProgressDialog progressDialog;
@@ -90,6 +72,7 @@ public class HomePageActivity extends AppCompatActivity implements NavigationVie
         super.onCreate(savedInstanceState);
         setContentView(R.layout.test_layout);
 
+        //initialiseViews
         nav_view = findViewById(R.id.nav_view);
         drawer_layout = findViewById(R.id.drawer_layout);
         drawerImageview = findViewById(R.id.drawerImageview);
@@ -101,22 +84,21 @@ public class HomePageActivity extends AppCompatActivity implements NavigationVie
         progressDialog.setMessage("Please wait...");
         progressDialog.setCancelable(false);
         nav_view.setNavigationItemSelectedListener(this);
-//        progressDialog.show();
 
-        if (isNetworkAvailable()){
+        //check if internet is available
+        if (isNetworkAvailable()) {
 
             FetchWikiDataAsync fetchFeaturedImagesAsync = new FetchWikiDataAsync();
             fetchFeaturedImagesAsync.execute();
 
-        }else {
+        } else {
             Toast.makeText(this, "No Internet Available", Toast.LENGTH_SHORT).show();
             startActivity(new Intent(HomePageActivity.this, SavedActivity.class));
             finish();
         }
 
-//        getHomeData();
 
-
+        //refresh api call
         swipeLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
@@ -126,22 +108,24 @@ public class HomePageActivity extends AppCompatActivity implements NavigationVie
             }
         });
 
+        //goto search activity
         searchButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 String searchText = "";
                 searchText = autoCompleteTextView.getText().toString();
-                Intent intent = new Intent(HomePageActivity.this, MainActivity.class);
+                Intent intent = new Intent(HomePageActivity.this, SearchActivity.class);
                 intent.putExtra("searchText", searchText);
                 startActivity(intent);
                 autoCompleteTextView.setText("");
             }
         });
 
+        //close drawer
         drawerImageview.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (drawer_layout.isDrawerOpen(nav_view)){
+                if (drawer_layout.isDrawerOpen(nav_view)) {
                     drawer_layout.closeDrawer(nav_view);
                     return;
                 }
@@ -155,6 +139,8 @@ public class HomePageActivity extends AppCompatActivity implements NavigationVie
     protected void onStart() {
         super.onStart();
     }
+
+    //method to check internet is available
     private boolean isNetworkAvailable() {
         ConnectivityManager connectivityManager
                 = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -167,7 +153,7 @@ public class HomePageActivity extends AppCompatActivity implements NavigationVie
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         switch (item.getItemId()) {
             case R.id.nav_search:
-                startActivity(new Intent(HomePageActivity.this, MainActivity.class));
+                startActivity(new Intent(HomePageActivity.this, SearchActivity.class));
                 break;
             case R.id.nav_saved:
                 startActivity(new Intent(HomePageActivity.this, SavedActivity.class));
@@ -178,6 +164,8 @@ public class HomePageActivity extends AppCompatActivity implements NavigationVie
         return false;
     }
 
+
+    //Async Task for fetching data from wikipedia api
     private class FetchWikiDataAsync extends AsyncTask<String, Void, String> {
         @Override
         protected void onPreExecute() {
@@ -200,6 +188,7 @@ public class HomePageActivity extends AppCompatActivity implements NavigationVie
         }
     }
 
+    //get random article
     private void getRandomArticles() {
         StringRequest stringRequest = new StringRequest(Request.Method.GET, ApiInterface.getRandomArticlesApi,
                 new Response.Listener<String>() {
@@ -207,21 +196,12 @@ public class HomePageActivity extends AppCompatActivity implements NavigationVie
                     public void onResponse(String response) {
                         if (response != null) {
                             try {
-//                                Log.e("RESPONSE     ", response);
                                 JSONObject jsonObj = new JSONObject(response);
-//                                String status = jsonObj.getString("code");
-//                                String message = jsonObj.getString("message");
                                 Gson gson = new GsonBuilder().setPrettyPrinting().create();
                                 JsonParser jp = new JsonParser();
                                 JsonElement je = jp.parse(response);
                                 String prettyJsonString = gson.toJson(je);
-                                Log.e("randomResponse     ", prettyJsonString);
-
-//                                JSONObject continueObject = jsonObj.getJSONObject("continue");
-//                                ContinueModel continueModel = new ContinueModel();
-//                                continueModel.setContinue_str(continueObject.getString("continue"));
-//                                continueModel.setGcmcontinue(continueObject.getString("gcmcontinue"));
-
+//                                Log.e("randomResponse     ", prettyJsonString);
                                 randomArticlesArrayList = new ArrayList<>();
                                 JSONObject query = jsonObj.getJSONObject("query");
                                 JSONObject pages = query.getJSONObject("pages");
@@ -246,26 +226,9 @@ public class HomePageActivity extends AppCompatActivity implements NavigationVie
                                 }
 
                                 getHomeData();
-
-//                                recyclerView.setLayoutManager(new LinearLayoutManager(HomePageActivity.this, LinearLayoutManager.VERTICAL, false));
-//                                RandomArticlesAdapter professionalServicesAdapter = new RandomArticlesAdapter(HomePageActivity.this, randomArticlesArrayList);
-//                                recyclerView.setAdapter(professionalServicesAdapter);
-//                                Log.e("Adpter==", "CALLED");
-//                                Log.e("Adpter==", String.valueOf(randomArticlesArrayList.size()));
-
-//                                if ((progressDialog != null) && progressDialog.isShowing()) {
-//                                    progressDialog.dismiss();
-//                                }
                             } catch (JSONException e) {
                                 e.printStackTrace();
-//                                if ((progressDialog != null) && progressDialog.isShowing()) {
-//                                    progressDialog.dismiss();
-//                                }
                             }
-                        } else {
-//                            if ((progressDialog != null) && progressDialog.isShowing()) {
-//                                progressDialog.dismiss();
-//                            }
                         }
                     }
                 },
@@ -291,14 +254,13 @@ public class HomePageActivity extends AppCompatActivity implements NavigationVie
         requestQueue.add(stringRequest);
     }
 
+    //get category list
     private void getCategoryList() {
 
+        //get category list based on last searched item
         String lastSearched = "";
 
-        lastSearched = ApiInterface.getPreference(HomePageActivity.this,"lastSearch");
-
-        System.out.println("lastSearchedString-->" + lastSearched);
-        System.out.println("CategoryListApi-->" + Request.Method.GET + ApiInterface.getCategoryListApi + lastSearched);
+        lastSearched = ApiInterface.getPreference(HomePageActivity.this, "lastSearch");
 
         StringRequest stringRequest = new StringRequest(Request.Method.GET, ApiInterface.getCategoryListApi + lastSearched,
                 new Response.Listener<String>() {
@@ -306,10 +268,7 @@ public class HomePageActivity extends AppCompatActivity implements NavigationVie
                     public void onResponse(String response) {
                         if (response != null) {
                             try {
-//                                Log.e("RESPONSE     ", response);
                                 JSONObject jsonObj = new JSONObject(response);
-//                                String status = jsonObj.getString("code");
-//                                String message = jsonObj.getString("message");
                                 Gson gson = new GsonBuilder().setPrettyPrinting().create();
                                 JsonParser jp = new JsonParser();
                                 JsonElement je = jp.parse(response);
@@ -330,7 +289,7 @@ public class HomePageActivity extends AppCompatActivity implements NavigationVie
                                     AllCategories allCategoriesModel = new AllCategories();
                                     allCategoriesModel.setCategory(catObj.getString("category"));
                                     allCategoriesArrayList.add(allCategoriesModel);
-                                    categoryStrings.append(catObj.getString("category")+"\n");
+                                    categoryStrings.append(catObj.getString("category") + "\n");
 
                                 }
                                 catModel.setType("Category List");
@@ -382,8 +341,6 @@ public class HomePageActivity extends AppCompatActivity implements NavigationVie
             }
         }
 
-        Log.e("StringRequest-->", ApiInterface.getFeaturedImagesApi + "&continue=" + continueStr +
-                "&gcmcontinue=" + gcmcontinue);
         StringRequest stringRequest = new StringRequest(Request.Method.GET, ApiInterface.getFeaturedImagesApi + "&continue=" + continueStr +
                 "&gcmcontinue=" + gcmcontinue,
                 new Response.Listener<String>() {
@@ -391,10 +348,7 @@ public class HomePageActivity extends AppCompatActivity implements NavigationVie
                     public void onResponse(String response) {
                         if (response != null) {
                             try {
-//                                Log.e("RESPONSE     ", response);
                                 JSONObject jsonObj = new JSONObject(response);
-//                                String status = jsonObj.getString("code");
-//                                String message = jsonObj.getString("message");
                                 Gson gson = new GsonBuilder().setPrettyPrinting().create();
                                 JsonParser jp = new JsonParser();
                                 JsonElement je = jp.parse(response);
@@ -495,13 +449,11 @@ public class HomePageActivity extends AppCompatActivity implements NavigationVie
             if (categoryList != null && categoryList.size() != 0) {
                 NewList.addAll(categoryList);
             }
-            if (NewList!=null && NewList.size()!=0) {
+            if (NewList != null && NewList.size() != 0) {
                 Collections.shuffle(NewList);
                 recyclerView.setLayoutManager(new LinearLayoutManager(HomePageActivity.this, LinearLayoutManager.VERTICAL, false));
                 RandomArticlesAdapter professionalServicesAdapter = new RandomArticlesAdapter(HomePageActivity.this, NewList);
                 recyclerView.setAdapter(professionalServicesAdapter);
-                Log.e("Adpter==", "CALLED");
-                Log.e("Adpter==", String.valueOf(NewList.size()));
             }
 
         }

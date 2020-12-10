@@ -4,12 +4,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
 
-import android.content.Context;
-import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.text.Html;
 import android.util.Log;
 import android.view.MenuItem;
@@ -33,18 +30,12 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-public class MainActivity extends AppCompatActivity {
+public class SearchActivity extends AppCompatActivity {
     private Button btnFetchData;
     private TextView txtWikiData;
     private ProgressBar progressBar;
     private EditText etxSearch;
     private String searchText="";
-    private SearchModel searchModel;
-
-
-
-    // Http Request Methods
-    // http://www.restapitutorial.com/lessons/httpmethods.html
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -85,7 +76,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void fetchDataFromWiki(String keyword) {
 
-        ApiInterface.setPreference(MainActivity.this,"lastSearch",keyword);
+        ApiInterface.setPreference(SearchActivity.this,"lastSearch",keyword);
 
         String WIKIPEDIA_URL = "https://en.wikipedia.org/w/api.php?format=json&action=query&prop=extracts&exintro&explaintext&redirects=1&titles="+keyword;
 
@@ -101,7 +92,7 @@ public class MainActivity extends AppCompatActivity {
         protected void onPreExecute() {
             super.onPreExecute();
             progressBar.setVisibility(View.VISIBLE);
-            Toast.makeText(MainActivity.this, "Fetching Data. Please wait.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(SearchActivity.this, "Fetching Data. Please wait.", Toast.LENGTH_SHORT).show();
         }
 
         @Override

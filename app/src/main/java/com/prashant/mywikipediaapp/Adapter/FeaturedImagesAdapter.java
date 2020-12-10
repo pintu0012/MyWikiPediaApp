@@ -36,6 +36,7 @@ public class FeaturedImagesAdapter extends RecyclerView.Adapter<FeaturedImagesAd
     @Override
     public void onBindViewHolder(final ViewHolder viewHolder, int position) {
 
+        //set data to featured images
         if (itemList.get(position).getType().equals("Featured Image")) {
 
             viewHolder.date.setVisibility(View.VISIBLE);
@@ -45,7 +46,9 @@ public class FeaturedImagesAdapter extends RecyclerView.Adapter<FeaturedImagesAd
 
             if (itemList.get(position).getImageByte()!=null && itemList.get(position).getImageByte().length!=0) {
                 Bitmap bmp = BitmapFactory.decodeByteArray(itemList.get(position).getImageByte(), 0, itemList.get(position).getImageByte().length);
-                viewHolder.imageView.setImageBitmap(Bitmap.createScaledBitmap(bmp, 300, 300, false));
+                if (bmp!=null) {
+                    viewHolder.imageView.setImageBitmap(Bitmap.createScaledBitmap(bmp, 300, 300, false));
+                }
             }else {
                 viewHolder.imageView.setImageResource(R.drawable.placeholder);
             }
@@ -56,6 +59,7 @@ public class FeaturedImagesAdapter extends RecyclerView.Adapter<FeaturedImagesAd
 
         }
 
+        //set data to random articles
         if (itemList.get(position).getType().equals("Random Article")) {
 
             viewHolder.imageView.setVisibility(View.GONE);
@@ -73,6 +77,7 @@ public class FeaturedImagesAdapter extends RecyclerView.Adapter<FeaturedImagesAd
         }
         viewHolder.type.setText(itemList.get(position).getType());
 
+        //set data to category list
         if (itemList.get(position).getType().equals("Category List")) {
             viewHolder.imageView.setVisibility(View.GONE);
             viewHolder.date.setVisibility(View.GONE);
