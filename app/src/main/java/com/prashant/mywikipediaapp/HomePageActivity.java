@@ -172,9 +172,6 @@ public class HomePageActivity extends AppCompatActivity implements NavigationVie
             case R.id.nav_saved:
                 startActivity(new Intent(HomePageActivity.this, SavedActivity.class));
                 break;
-            case R.id.nav_settings:
-                startActivity(new Intent(HomePageActivity.this, MainActivity.class));
-                break;
 
         }
         drawer_layout.closeDrawer(nav_view);

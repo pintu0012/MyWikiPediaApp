@@ -47,7 +47,7 @@ public class SavedActivity extends AppCompatActivity {
 
         if (articles != null) {
 
-            savedRecycler.setLayoutManager(new LinearLayoutManager(SavedActivity.this, LinearLayoutManager.VERTICAL, false));
+            savedRecycler.setLayoutManager(new LinearLayoutManager(SavedActivity.this, LinearLayoutManager.VERTICAL, true));
             FeaturedImagesAdapter professionalServicesAdapter = new FeaturedImagesAdapter(SavedActivity.this, articles);
             savedRecycler.setAdapter(professionalServicesAdapter);
 
