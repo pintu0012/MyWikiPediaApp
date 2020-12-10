@@ -1,21 +1,28 @@
 package com.prashant.mywikipediaapp;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.text.Html;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
@@ -26,6 +33,7 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.google.android.material.navigation.NavigationView;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
@@ -61,7 +69,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.regex.Pattern;
 
-public class HomePageActivity extends AppCompatActivity {
+public class HomePageActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener{
 
     private RecyclerView recyclerView;
     private ProgressDialog progressDialog;
@@ -72,7 +80,9 @@ public class HomePageActivity extends AppCompatActivity {
     private ArrayList<RandomArticles> categoryList;
     private AutoCompleteTextView autoCompleteTextView;
     private Button searchButton;
-    private SearchModel searchModel;
+    private ImageView drawerImageview;
+    private DrawerLayout drawer_layout;
+    private NavigationView nav_view;
 
 
     @Override
@@ -80,6 +90,9 @@ public class HomePageActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.test_layout);
 
+        nav_view = findViewById(R.id.nav_view);
+        drawer_layout = findViewById(R.id.drawer_layout);
+        drawerImageview = findViewById(R.id.drawerImageview);
         searchButton = findViewById(R.id.search_button);
         autoCompleteTextView = findViewById(R.id.search_autocomplete_textview);
         swipeLayout = findViewById(R.id.swipeLayout);
@@ -87,9 +100,20 @@ public class HomePageActivity extends AppCompatActivity {
         progressDialog = new ProgressDialog(this);
         progressDialog.setMessage("Please wait...");
         progressDialog.setCancelable(false);
+        nav_view.setNavigationItemSelectedListener(this);
 //        progressDialog.show();
-        FetchWikiDataAsync fetchFeaturedImagesAsync = new FetchWikiDataAsync();
-        fetchFeaturedImagesAsync.execute();
+
+        if (isNetworkAvailable()){
+
+            FetchWikiDataAsync fetchFeaturedImagesAsync = new FetchWikiDataAsync();
+            fetchFeaturedImagesAsync.execute();
+
+        }else {
+            Toast.makeText(this, "No Internet Available", Toast.LENGTH_SHORT).show();
+            startActivity(new Intent(HomePageActivity.this, SavedActivity.class));
+            finish();
+        }
+
 //        getHomeData();
 
 
@@ -114,6 +138,47 @@ public class HomePageActivity extends AppCompatActivity {
             }
         });
 
+        drawerImageview.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (drawer_layout.isDrawerOpen(nav_view)){
+                    drawer_layout.closeDrawer(nav_view);
+                    return;
+                }
+                drawer_layout.openDrawer(nav_view);
+            }
+        });
+
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+    }
+    private boolean isNetworkAvailable() {
+        ConnectivityManager connectivityManager
+                = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
+    }
+
+
+    @Override
+    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.nav_search:
+                startActivity(new Intent(HomePageActivity.this, MainActivity.class));
+                break;
+            case R.id.nav_saved:
+                startActivity(new Intent(HomePageActivity.this, SavedActivity.class));
+                break;
+            case R.id.nav_settings:
+                startActivity(new Intent(HomePageActivity.this, MainActivity.class));
+                break;
+
+        }
+        drawer_layout.closeDrawer(nav_view);
+        return false;
     }
 
     private class FetchWikiDataAsync extends AsyncTask<String, Void, String> {
@@ -127,8 +192,6 @@ public class HomePageActivity extends AppCompatActivity {
         @Override
         protected String doInBackground(String[] params) {
             getCategoryList();
-            getRandomArticles();
-            getHomeData();
             return "";
 
         }
@@ -178,13 +241,14 @@ public class HomePageActivity extends AppCompatActivity {
                                     Log.v("**********", jsonObject.getString("title"));
                                     RandomArticles randomArticles = new RandomArticles();
                                     randomArticles.setPageId(jsonObject.getString("pageid"));
-                                    randomArticles.setNs(jsonObject.getString("ns"));
                                     randomArticles.setTitle(jsonObject.getString("title"));
                                     randomArticles.setExtract(jsonObject.optString("extract"));
                                     randomArticles.setType("Random Article");
 
                                     randomArticlesArrayList.add(randomArticles);
                                 }
+
+                                getHomeData();
 
 //                                recyclerView.setLayoutManager(new LinearLayoutManager(HomePageActivity.this, LinearLayoutManager.VERTICAL, false));
 //                                RandomArticlesAdapter professionalServicesAdapter = new RandomArticlesAdapter(HomePageActivity.this, randomArticlesArrayList);
@@ -237,6 +301,7 @@ public class HomePageActivity extends AppCompatActivity {
         lastSearched = ApiInterface.getPreference(HomePageActivity.this,"lastSearch");
 
         System.out.println("lastSearchedString-->" + lastSearched);
+        System.out.println("CategoryListApi-->" + Request.Method.GET + ApiInterface.getCategoryListApi + lastSearched);
 
         StringRequest stringRequest = new StringRequest(Request.Method.GET, ApiInterface.getCategoryListApi + lastSearched,
                 new Response.Listener<String>() {
@@ -261,16 +326,22 @@ public class HomePageActivity extends AppCompatActivity {
                                 JSONObject query = jsonObj.getJSONObject("query");
                                 JSONArray allcategories = query.getJSONArray("allcategories");
                                 ArrayList<AllCategories> allCategoriesArrayList = new ArrayList<>();
+                                StringBuilder categoryStrings = new StringBuilder();
+
                                 for (int i = 0; i < allcategories.length(); i++) {
                                     JSONObject catObj = allcategories.getJSONObject(i);
                                     AllCategories allCategoriesModel = new AllCategories();
                                     allCategoriesModel.setCategory(catObj.getString("category"));
                                     allCategoriesArrayList.add(allCategoriesModel);
+                                    categoryStrings.append(catObj.getString("category")+"\n");
+
                                 }
                                 catModel.setType("Category List");
                                 catModel.setCategoryModelArrayList(allCategoriesArrayList);
+                                catModel.setCategory(String.valueOf(categoryStrings));
+
                                 categoryList.add(catModel);
-                                Log.e("catSize-->", String.valueOf(categoryList.get(0).getCategoryModelArrayList().size()));
+                                getRandomArticles();
 
                             } catch (JSONException e) {
                                 e.printStackTrace();
@@ -352,14 +423,15 @@ public class HomePageActivity extends AppCompatActivity {
                                     JSONObject jsonObject = pages.getJSONObject(key);
                                     RandomArticles randomArticles = new RandomArticles();
                                     randomArticles.setPageId(jsonObject.getString("pageid"));
-                                    randomArticles.setNs(jsonObject.getString("ns"));
                                     randomArticles.setTitle(jsonObject.getString("title").replace("File:", "").replace(".jpg", ""));
                                     randomArticles.setType("Featured Image");
 
                                     JSONArray imageinfo = jsonObject.getJSONArray("imageinfo");
+
                                     ArrayList<ImageInfo> imageInfoArrayList = new ArrayList<>();
                                     for (int k = 0; k < imageinfo.length(); k++) {
                                         JSONObject dataObject = imageinfo.getJSONObject(k);
+                                        randomArticles.setImageUrl(dataObject.getString("url"));
                                         ImageInfo imageInfo = new ImageInfo();
                                         imageInfo.setTimestamp(dataObject.getString("timestamp"));
                                         imageInfo.setUser(dataObject.getString("user"));

@@ -6,17 +6,50 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class RandomArticles {
-    private String number;
     private String pageId;
-    private String ns;
     private String title;
-    private List<Revisions> revisionsList;
     private String type;
     private String extract;
     private List<ImageInfo> imageInfoList;
     private ArrayList<AllCategories> categoryModelArrayList;
     private String category;
+    private String imageUrl;
+    private boolean isSaved;
+    private byte[] imageByte;
 
+    public RandomArticles(String pageId, String title, String type, String imageUrl, String category, String extract, boolean isSaved) {
+        this.pageId = pageId;
+        this.title = title;
+        this.type = type;
+        this.imageUrl = imageUrl;
+        this.category = category;
+        this.extract = extract;
+        this.isSaved = isSaved;
+    }
+
+
+    public byte[] getImageByte() {
+        return imageByte;
+    }
+
+    public void setImageByte(byte[] imageByte) {
+        this.imageByte = imageByte;
+    }
+
+    public boolean isSaved() {
+        return isSaved;
+    }
+
+    public void setSaved(boolean saved) {
+        isSaved = saved;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
 
     public String getCategory() {
         return category;
@@ -61,13 +94,6 @@ public class RandomArticles {
     public RandomArticles() {
     }
 
-    public String getNumber() {
-        return number;
-    }
-
-    public void setNumber(String number) {
-        this.number = number;
-    }
 
     public String getPageId() {
         return pageId;
@@ -75,14 +101,6 @@ public class RandomArticles {
 
     public void setPageId(String pageId) {
         this.pageId = pageId;
-    }
-
-    public String getNs() {
-        return ns;
-    }
-
-    public void setNs(String ns) {
-        this.ns = ns;
     }
 
     public String getTitle() {
@@ -93,11 +111,4 @@ public class RandomArticles {
         this.title = title;
     }
 
-    public List<Revisions> getRevisionsList() {
-        return revisionsList;
-    }
-
-    public void setRevisionsList(List<Revisions> revisionsList) {
-        this.revisionsList = revisionsList;
-    }
 }

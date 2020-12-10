@@ -74,16 +74,14 @@
                         android:id="@+id/user"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:textSize="12sp"
-                        android:text="@string/app_name"/>
+                        android:textSize="12sp"/>
 
                     <TextView
                         android:id="@+id/date"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_alignParentEnd="true"
-                        android:textSize="12sp"
-                        android:text="@string/app_name"/>
+                        android:textSize="12sp"/>
 
                 </RelativeLayout>
 
